@@ -29,9 +29,9 @@ class Block():
             self.nonce
         )
     
+
     def __str__(self):
-        return str("Block#: %s\nHash: %s\nPrevious:" +
-            "%s\nData: %s\nNonce: %s\n" %(
+        return str("Block#: %s\nHash: %s\nPrevious: %s\nData: %s\nNonce: %s\n" %(
             self.number,
             self.hash(),
             self.previous_hash,
@@ -41,7 +41,6 @@ class Block():
         )
 
 
-
 class Blockchain():
     difficulty = 4
 
@@ -49,19 +48,14 @@ class Blockchain():
         self.chain = chain
 
     def add(self, block):
-        self.chain.append({
-            'hash': block.hash(), 
-            'previous': block.previous_hash, 
-            'number': block.number, 
-            'data': block.data, 
-            'nonce': block.nonce
-        })
+        self.chain.append(block)
+
+    def remove(self, block):
+        self.chain.remove(block)
 
     def mine(self, block):
-        try:
-            block.previous_hash = self.chain[-1].get('hash')
-        except IndexError:
-            pass
+        try: block.previous_hash = self.chain[-1].hash()
+        except IndexError: pass
 
         while True:
             if block.hash()[:self.difficulty] == "0" * self.difficulty:
@@ -69,19 +63,32 @@ class Blockchain():
             else:
                 block.nonce += 1
 
+    def isValid(self):
+        for i in range(1,len(self.chain)):
+            _previous = self.chain[i].previous_hash
+            _current = self.chain[i-1].hash()
+            if _previous != _current or _current[:self.difficulty] != "0"*self.difficulty:
+                return False
+
+        return True
 
 
 def main():
     blockchain = Blockchain()
-    database = ["hello world", "what's up", "hello", "bye"]
+    database = ["hello", "goodbye", "test", "DATA here"]
 
     num = 0
+
     for data in database:
         num += 1
         blockchain.mine(Block(data,num))
 
     for block in blockchain.chain:
         print(block)
+
+    blockchain.chain[2].data = "NEW DATA"
+    blockchain.mine(blockchain.chain[2])
+    print(blockchain.isValid())
 
 
 if __name__ == '__main__':
